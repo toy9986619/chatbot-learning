@@ -4,20 +4,39 @@
 const { ActivityTypes, MessageFactory, TurnContext } = require('botbuilder');
 const request = require('request');
 
-// Define property name
-const CONVERSATION_DATA_PROPERTY = 'conversionData';
-const USER_PROFILE_PROPERTY = 'userData';
+// import dialog
+const {ChoicePrompt, DialogSet, TextPrompt, WaterfallDialog} = require('botbuilder-dialogs');
+
+
+// Define waterfall dialog property
+const DIALOG_STATE_PROPERTY = 'dialogState';
+const USER_PROFILE_PROPERTY = 'user';
+
+const WEATHER_DIALOG = 'weatherDialog';
+
+const LOCATION_PROMPT = 'location_prompt';
 
 class MyBot {
 
     constructor(conversationState, userState) {
         // Create the state property accessors
-        this.conversationData = conversationState.createProperty(CONVERSATION_DATA_PROPERTY);
+        this.dialogState = conversationState.createProperty(DIALOG_STATE_PROPERTY);
         this.userProfile = userState.createProperty(USER_PROFILE_PROPERTY);
 
         // The state management object
         this.conversationState = conversationState;
         this.userState = userState;
+        
+        // create dialogs
+        this.dialogs = new DialogSet(this.dialogState);
+
+        // add prompts that will be used by the main dialog
+        this.dialogs.add(new ChoicePrompt(LOCATION_PROMPT));
+
+        this.dialogs.add(new WaterfallDialog(WEATHER_DIALOG, [
+            this.promptForLocation.bind(this),
+            this.getWeather.bind(this)
+        ]));
     }
 
     /**
@@ -27,46 +46,21 @@ class MyBot {
     async onTurn(turnContext) {
         // See https://aka.ms/about-bot-activity-message to learn more about the message and other activity types.
         if (turnContext.activity.type === ActivityTypes.Message) {
-            // get state property
-            const userProfile = await this.userProfile.get(turnContext, {});
-            const conversationData = await this.conversationData.get(
-                turnContext, { promptedForUserChoice: false });
-            const vaildCommands = ['天氣'];
-            
-            // set command
-            if(!conversationData.command && vaildCommands.includes(turnContext.activity.text)){
-                conversationData.command = turnContext.activity.text;
-            } else {
-                await turnContext.sendActivity(`你傳送了 ${turnContext.activity.text}`);
+            // create a dialog context object
+            const dc = await this.dialogs.createContext(turnContext); 
+
+            // If the bot hat not yet responded, continue processing the current dialog
+            await dc.continueDialog();
+
+            if(!turnContext.responded){
+                // get state property
+                const user = await this.userProfile.get(dc.context, {});
+
+                await dc.beginDialog(WEATHER_DIALOG);
             }
 
-            // check weather
-            if (conversationData.command == '天氣') {
-                // ask flag
-                if (conversationData.promptedForUserChoice) {
-                    userProfile.location = turnContext.activity.text;
-                    const reply = await this.getWeather(userProfile);
-
-                    await turnContext.sendActivity(reply);
-                    conversationData.command = null;
-                    conversationData.promptedForUserChoice = false;
-                } else {
-                    await this.sendAreaOption(turnContext);
-
-                    // don't ask again
-                    conversationData.promptedForUserChoice = true;
-                }
-
-                // update user profile and state
-                await this.userProfile.set(turnContext, userProfile)
-                await this.userState.saveChanges(turnContext);
-            }
-
-            // update conversation data and state
-            await this.conversationData.set(turnContext, conversationData);
-            await this.conversationState.saveChanges(turnContext);
-        } else {
-            await turnContext.sendActivity(`[${turnContext.activity.type} event detected]`);
+            await this.userState.saveChanges(turnContext);
+            await this.conversationState.saveChanges(turnContext);   
         }
     }
 
@@ -76,16 +70,27 @@ class MyBot {
         await sendAreaOption(turnContext);
     }
 
-    async sendAreaOption(turnContext) {
-        const reply = MessageFactory.suggestedActions(['臺北市', '新北市', '臺中市'], '請選擇城市');
-        await turnContext.sendActivity(reply);
+    async promptForLocation(step) {
+        return await step.prompt(LOCATION_PROMPT, '請選擇城市', ['臺北市', '新北市', '臺中市']);
     }
 
-    getData(userProfile) {
+    async getWeather(step) {
+        const user = await this.userProfile.get(step.context, {});
+        user.location = step.result.value;
+
+        await this.userProfile.set(step.context, user);
+
+        const reply = await this.getData(user.location);
+        await step.context.sendActivity(reply);
+ 
+        return await step.endDialog();
+     }
+
+    getData(location) {
         const params = {
             Authorization: 'CWB-05BB39AF-5A44-4DB6-BB74-D3789295B4FE',
             format: 'JSON',
-            locationName: userProfile.location,
+            locationName: location,
             elementName: 'Wx,PoP,MinT,MaxT'
         };
 
@@ -101,7 +106,7 @@ class MyBot {
                         const maxTemperture = weatherElement[3].time[0].parameter.parameterName;
                         const startTime = weatherElement[0].time[0].startTime.slice(11, 19);
                         const endTime = weatherElement[0].time[0].endTime.slice(11, 19);
-                        const tempertureUnit = String.fromCharCode(8451);
+                        const tempertureUnit = String.fromCharCode(8451); //%
 
                         const reply = `${params.locationName}
                             時間: ${startTime} 至 ${endTime}
@@ -114,11 +119,6 @@ class MyBot {
                 }
             );
         })
-    }
-
-    async getWeather(userProfile) {
-        let result = await this.getData(userProfile);
-        return result;
     }
 }
 
