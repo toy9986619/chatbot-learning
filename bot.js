@@ -61,13 +61,27 @@ class MyBot {
 
             await this.userState.saveChanges(turnContext);
             await this.conversationState.saveChanges(turnContext);   
+        } else if (turnContext.activity.type === ActivityTypes.ConversationUpdate){
+            await this.sendWelcomeMessage(turnContext);
+        } else {
+            this.sendActivity(`[${ turnContext.activity.type } event detected]`);
         }
     }
 
     async sendWelcomeMessage(turnContext) {
-        const message = "歡迎來到天氣查詢";
-        await turnContext.sendActivity(message);
-        await sendAreaOption(turnContext);
+        const message = MessageFactory.suggestedActions(['查詢天氣'], "歡迎來到個人小幫手!");
+
+        if (turnContext.activity && turnContext.activity.membersAdded) {
+            async function welcomeUserFunc(conversationMember) {
+                if(conversationMember.id !== this.activity.recipient.id) {
+                    await turnContext.sendActivity(message);
+                    
+                }
+            }
+
+            const replyPromises = turnContext.activity.membersAdded.map(welcomeUserFunc.bind(turnContext));
+            await Promise.all(replyPromises);
+        }  
     }
 
     async promptForLocation(step) {
