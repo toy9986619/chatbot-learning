@@ -63,13 +63,13 @@ class MyBot {
         } else if (turnContext.activity.type === ActivityTypes.ConversationUpdate){
             await this.sendWelcomeMessage(turnContext);
         } else {
-            this.sendActivity(`[${ turnContext.activity.type } event detected]`);
+            await this.sendActivity(`[${ turnContext.activity.type } event detected]`);
         }
     }
 
     async sendWelcomeMessage(turnContext) {
         // const message = MessageFactory.suggestedActions(['查詢天氣'], "歡迎來到個人小幫手!");
-        const message = turnContext.sendActivity("歡迎來到個人小幫手!");
+        const message = await turnContext.sendActivity("歡迎來到個人小幫手!");
 
         if (turnContext.activity && turnContext.activity.membersAdded) {
             async function welcomeUserFunc(conversationMember) {
