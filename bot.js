@@ -69,7 +69,7 @@ class MyBot {
 
     async sendWelcomeMessage(turnContext) {
         // const message = MessageFactory.suggestedActions(['查詢天氣'], "歡迎來到個人小幫手!");
-        const message = await turnContext.sendActivity("歡迎來到個人小幫手!");
+        const message = "歡迎來到個人小幫手!";
 
         if (turnContext.activity && turnContext.activity.membersAdded) {
             async function welcomeUserFunc(conversationMember) {
