@@ -1,6 +1,5 @@
 const { ComponentDialog, ChoicePrompt, TextPrompt, WaterfallDialog } = require('botbuilder-dialogs');
 const { ActionTypes, ActivityTypes, CardFactory } = require('botbuilder');
-const request = require('request');
 const fetch = require('node-fetch');
 
 class CatImgDialog extends ComponentDialog {
