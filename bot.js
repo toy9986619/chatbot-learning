@@ -7,12 +7,14 @@ const { ActivityTypes, MessageFactory, TurnContext } = require('botbuilder');
 const {ChoicePrompt, DialogSet, Dialog, WaterfallDialog, DialogTurnStatus} = require('botbuilder-dialogs');
 
 const { WeatherDialog } = require('./dialogs/weatherDialog'); 
+const { CatImgDialog } = require('./dialogs/catImgDialog');
 
 // Define waterfall dialog property
 const DIALOG_INFO_PROPERTY = 'dialogInfo';
 const USER_INFO_PROPERTY = 'user';
 
 const WEATHER_DIALOG = 'weatherDialog';
+const CAT_IMG_DIALOG = 'catImgDialog';
 
 const LOCATION_PROMPT = 'location_prompt';
 
@@ -33,6 +35,7 @@ class MyBot {
         // add prompts that will be used by the main dialog
         this.dialogs.add(new ChoicePrompt(LOCATION_PROMPT))
             .add(new WeatherDialog(WEATHER_DIALOG))
+            .add(new CatImgDialog(CAT_IMG_DIALOG))
             .add(new WaterfallDialog('mainDialog', [
                 this.promptForChoice.bind(this),
                 this.startChildDialog.bind(this)
@@ -57,7 +60,6 @@ class MyBot {
                 await dc.beginDialog('mainDialog');
             }
             
-
             await this.userState.saveChanges(turnContext);
             await this.conversationState.saveChanges(turnContext);   
         } else if (turnContext.activity.type === ActivityTypes.ConversationUpdate){
@@ -68,7 +70,6 @@ class MyBot {
     }
 
     async sendWelcomeMessage(turnContext) {
-        // const message = MessageFactory.suggestedActions(['查詢天氣'], "歡迎來到個人小幫手!");
         const message = "歡迎來到個人小幫手!";
 
         if (turnContext.activity && turnContext.activity.membersAdded) {
@@ -84,7 +85,7 @@ class MyBot {
     }
 
     async promptForChoice(step) {
-        const menu = ['查詢天氣'];
+        const menu = ['查詢天氣', '貼個貓貓'];
         const reply = MessageFactory.suggestedActions(menu, '您要使用什麼服務?');
         await step.context.sendActivity(reply);
     }
@@ -95,6 +96,9 @@ class MyBot {
         switch(step.result) {
             case '查詢天氣':
                 return await step.beginDialog(WEATHER_DIALOG);
+                break;
+            case '貼個貓貓':
+                return await step.beginDialog(CAT_IMG_DIALOG);
                 break;
             default:
                 await step.context.sendActivity('我不清楚你的選擇');
