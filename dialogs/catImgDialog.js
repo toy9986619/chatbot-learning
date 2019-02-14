@@ -2,15 +2,26 @@ const { ComponentDialog, ChoicePrompt, TextPrompt, WaterfallDialog } = require('
 const { ActionTypes, ActivityTypes, CardFactory } = require('botbuilder');
 const fetch = require('node-fetch');
 
+const PROMPT = 'prompt';
+const ONE_MORE = 'one_more';
+const FINISH = 'finish';
+
+
 class CatImgDialog extends ComponentDialog {
     constructor(dialogId) {
         super(dialogId);
 
         this.initialDialogId = dialogId;
 
+        this.addDialog(new TextPrompt(PROMPT));
         this.addDialog(new WaterfallDialog(dialogId, [
             async function(step) {
                 let imgUrl;
+
+                const button = [
+                    { type: ActionTypes.ImBack, title: '再來一張', value: ONE_MORE },
+                    { type: ActionTypes.ImBack, title: '結束', value:FINISH }
+                ]
 
                 await fetch("https://api.thecatapi.com/v1/images/search", {
                         headers: {
@@ -22,12 +33,27 @@ class CatImgDialog extends ComponentDialog {
                     .catch(err => console.log(err));
 
                 const card = CardFactory.heroCard('', [imgUrl],
-                undefined, { text: 'cute cat, right?' });
+                    button, { text: 'cute cat, right?' });
 
                 const reply = { type: ActivityTypes.Message };
                 reply.attachments = [card];
 
                 await step.context.sendActivity(reply);
+                // return await step.endDialog();
+                return await step.prompt(PROMPT, '');
+            },
+
+            async function(step) {
+                switch(step.result){
+                    case ONE_MORE:
+                        return await step.replaceDialog(dialogId);
+                        break;
+                    case FINISH:
+                        break;
+                    default:
+                        break;
+                }
+
                 return await step.endDialog();
             }
         ]))
