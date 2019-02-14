@@ -33,13 +33,12 @@ class CatImgDialog extends ComponentDialog {
                     .catch(err => console.log(err));
 
                 const card = CardFactory.heroCard('', [imgUrl],
-                    button, { text: 'cute cat, right?' });
+                    button, { text: 'Cute cat, right?' });
 
                 const reply = { type: ActivityTypes.Message };
                 reply.attachments = [card];
 
                 await step.context.sendActivity(reply);
-                // return await step.endDialog();
                 return await step.prompt(PROMPT, '');
             },
 
