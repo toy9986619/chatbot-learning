@@ -102,7 +102,7 @@ class MyBot {
                 break;
             default:
                 await step.context.sendActivity('我不清楚你的選擇');
-                return await step.replaceDialog('mainDialog');
+                return await step.endDialog();
                 break;
         }
     }
