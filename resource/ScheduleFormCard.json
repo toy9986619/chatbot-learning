@@ -1,0 +1,38 @@
+{
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "type": "AdaptiveCard",
+    "version": "1.0",
+    "body": [
+        {
+            "type": "TextBlock",
+            "text": "新增行程",
+            "size": "large",
+            "weight": "bolder"
+        },
+        {
+            "type": "TextBlock",
+            "text": "行程名稱",
+            "size": "small"
+        },
+        {
+            "type": "Input.Text",
+            "id": "name"
+        }
+    ],
+    "actions": [
+        {
+            "type": "Action.Submit",
+            "title": "保存",
+            "data": {
+                "result": "save"
+            }
+        },
+        {
+            "type": "Action.Submit",
+            "title": "取消",
+            "data": {
+                "result": "cancel"
+            }
+        }
+    ] 
+}

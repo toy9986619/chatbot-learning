@@ -8,6 +8,7 @@ const {ChoicePrompt, DialogSet, Dialog, WaterfallDialog, DialogTurnStatus} = req
 
 const { WeatherDialog } = require('./dialogs/weatherDialog'); 
 const { CatImgDialog } = require('./dialogs/catImgDialog');
+const { ScheduleDialog } = require('./dialogs/scheduleDialog');
 
 // Define waterfall dialog property
 const DIALOG_INFO_PROPERTY = 'dialogInfo';
@@ -15,6 +16,7 @@ const USER_INFO_PROPERTY = 'user';
 
 const WEATHER_DIALOG = 'weatherDialog';
 const CAT_IMG_DIALOG = 'catImgDialog';
+const SCHEDULE_DIALOG = 'scheduleDialog';
 
 const LOCATION_PROMPT = 'location_prompt';
 
@@ -36,6 +38,7 @@ class MyBot {
         this.dialogs.add(new ChoicePrompt(LOCATION_PROMPT))
             .add(new WeatherDialog(WEATHER_DIALOG))
             .add(new CatImgDialog(CAT_IMG_DIALOG))
+            .add(new ScheduleDialog(SCHEDULE_DIALOG))
             .add(new WaterfallDialog('mainDialog', [
                 this.promptForChoice.bind(this),
                 this.startChildDialog.bind(this)
@@ -64,7 +67,8 @@ class MyBot {
             await this.conversationState.saveChanges(turnContext);   
         } else if (turnContext.activity.type === ActivityTypes.ConversationUpdate){
             await this.sendWelcomeMessage(turnContext);
-        } else {
+        } 
+        else {
             await this.sendActivity(`[${ turnContext.activity.type } event detected]`);
         }
     }
@@ -85,7 +89,7 @@ class MyBot {
     }
 
     async promptForChoice(step) {
-        const menu = ['查詢天氣', '貼個貓貓'];
+        const menu = ['查詢天氣', '貼個貓貓', '行程查詢'];
         const reply = MessageFactory.suggestedActions(menu, '您要使用什麼服務?');
         await step.context.sendActivity(reply);
     }
@@ -99,6 +103,9 @@ class MyBot {
                 break;
             case '貼個貓貓':
                 return await step.beginDialog(CAT_IMG_DIALOG);
+                break;
+            case '行程查詢':
+                return await step.beginDialog(SCHEDULE_DIALOG);
                 break;
             default:
                 await step.context.sendActivity('我不清楚你的選擇');
