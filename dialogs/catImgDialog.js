@@ -25,7 +25,7 @@ class CatImgDialog extends ComponentDialog {
 
                 await fetch("https://api.thecatapi.com/v1/images/search", {
                         headers: {
-                            'x-api-key': '2061f446-1450-404a-9e82-97fec45f78c8'
+                            'x-api-key': process.env.catApiToken
                         }
                     })
                     .then(res => res.json())
