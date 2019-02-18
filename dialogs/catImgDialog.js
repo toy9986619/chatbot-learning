@@ -16,24 +16,25 @@ class CatImgDialog extends ComponentDialog {
         this.addDialog(new TextPrompt(PROMPT));
         this.addDialog(new WaterfallDialog(dialogId, [
             async function(step) {
-                let imgUrl;
-
                 const button = [
                     { type: ActionTypes.ImBack, title: '再來一張', value: ONE_MORE },
                     { type: ActionTypes.ImBack, title: '結束', value:FINISH }
                 ]
 
-                try {
-                    const res = await fetch("https://api.thecatapi.com/v1/images/search", {
-                        headers: {
-                            'x-api-key': process.env.catApiToken
-                        }
-                    })
-                    const jsonData = await res.json();
-                    imgUrl = jsonData[0].url;
-                } catch (error) {
-                    console.log(error);
-                }
+                const imgUrl = await (async () => {
+                    try {
+                        const res = await fetch("https://api.thecatapi.com/v1/images/search", {
+                            headers: {
+                                'x-api-key': process.env.catApiToken
+                            }
+                        })
+                        const jsonData = await res.json();
+
+                        return jsonData[0].url;
+                    } catch (error) {
+                        console.log(error);
+                    }
+                })();
                 
 
                 const card = CardFactory.heroCard('', [imgUrl],
