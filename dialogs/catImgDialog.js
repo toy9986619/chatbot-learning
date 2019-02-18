@@ -23,14 +23,18 @@ class CatImgDialog extends ComponentDialog {
                     { type: ActionTypes.ImBack, title: '結束', value:FINISH }
                 ]
 
-                await fetch("https://api.thecatapi.com/v1/images/search", {
+                try {
+                    const res = await fetch("https://api.thecatapi.com/v1/images/search", {
                         headers: {
                             'x-api-key': process.env.catApiToken
                         }
                     })
-                    .then(res => res.json())
-                    .then(json => imgUrl = json[0].url)
-                    .catch(err => console.log(err));
+                    const jsonData = await res.json();
+                    imgUrl = jsonData[0].url;
+                } catch (error) {
+                    console.log(error);
+                }
+                
 
                 const card = CardFactory.heroCard('', [imgUrl],
                     button, { text: 'Cute cat, right?' });

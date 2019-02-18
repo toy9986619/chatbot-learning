@@ -35,24 +35,27 @@ class WeatherDialog extends ComponentDialog {
 
                 let reply = null;
 
-                await fetch(url)
-                    .then(res => res.json())
-                    .then(jsonData => {
-                        const weatherElement = jsonData.records.location[0].weatherElement;
-                        const weather = weatherElement[0].time[0].parameter.parameterName;
-                        const rain = weatherElement[1].time[0].parameter.parameterName;
-                        const minTemperture = weatherElement[2].time[0].parameter.parameterName;
-                        const maxTemperture = weatherElement[3].time[0].parameter.parameterName;
-                        const startTime = weatherElement[0].time[0].startTime.slice(11, 19);
-                        const endTime = weatherElement[0].time[0].endTime.slice(11, 19);
-                        const tempertureUnit = String.fromCharCode(8451); //%
-            
-                        reply = `${params.locationName}
-                            時間: ${startTime} 至 ${endTime}
-                            ${weather}, 降雨機率: ${rain}%, 氣溫: ${minTemperture}${tempertureUnit} ~ ${maxTemperture}${tempertureUnit}
-                        `;
-                    })
-                    .catch(err => console.log(err));
+                try {
+                    const res = await fetch(url)
+                    const jsonData = await res.json();
+                    
+                    const weatherElement = jsonData.records.location[0].weatherElement;
+                    const weather = weatherElement[0].time[0].parameter.parameterName;
+                    const rain = weatherElement[1].time[0].parameter.parameterName;
+                    const minTemperture = weatherElement[2].time[0].parameter.parameterName;
+                    const maxTemperture = weatherElement[3].time[0].parameter.parameterName;
+                    const startTime = weatherElement[0].time[0].startTime.slice(11, 19);
+                    const endTime = weatherElement[0].time[0].endTime.slice(11, 19);
+                    const tempertureUnit = String.fromCharCode(8451); //%
+                
+                    reply = `${params.locationName}
+                        時間: ${startTime} 至 ${endTime}
+                        ${weather}, 降雨機率: ${rain}%, 氣溫: ${minTemperture}${tempertureUnit} ~ ${maxTemperture}${tempertureUnit}
+                    `;
+                } catch (error) {
+                    console.log(error);
+                }
+
                 await step.context.sendActivity(reply);
          
                 return await step.endDialog();
