@@ -18,7 +18,7 @@ const WEATHER_DIALOG = 'weatherDialog';
 const CAT_IMG_DIALOG = 'catImgDialog';
 const SCHEDULE_DIALOG = 'scheduleDialog';
 
-const LOCATION_PROMPT = 'location_prompt';
+const CHOICE_PROMPT = 'CHOICE_PROMPT';
 
 class MyBot {
 
@@ -35,7 +35,7 @@ class MyBot {
         this.dialogs = new DialogSet(this.dialogInfoAccessor);
 
         // add prompts that will be used by the main dialog
-        this.dialogs.add(new ChoicePrompt(LOCATION_PROMPT))
+        this.dialogs.add(new ChoicePrompt(CHOICE_PROMPT))
             .add(new WeatherDialog(WEATHER_DIALOG))
             .add(new CatImgDialog(CAT_IMG_DIALOG))
             .add(new ScheduleDialog(SCHEDULE_DIALOG))

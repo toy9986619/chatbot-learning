@@ -10,7 +10,7 @@ class ScheduleDialog extends ComponentDialog{
 
         this.initialDialogId = dialogId;
 
-        this.addDialog(new TextPrompt(PROMPT, this.promptVaildator))
+        this.addDialog(new TextPrompt(PROMPT, this.promptValidator))
         this.addDialog(new WaterfallDialog(dialogId, [
             async function(step) {
                 await step.context.sendActivity({
@@ -29,7 +29,7 @@ class ScheduleDialog extends ComponentDialog{
         ]));
     }
     
-    async promptVaildator(promptContext){
+    async promptValidator(promptContext){
         const activity = promptContext.context.activity;
 
         return activity.type === 'message' && activity.channelData.postback;
