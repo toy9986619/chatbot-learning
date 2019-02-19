@@ -26,7 +26,7 @@ class WeatherDialog extends ComponentDialog {
                 const location = step.result.value;
                 const url = new URL('https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-C0032-001');
                 const params = {
-                    Authorization: 'CWB-05BB39AF-5A44-4DB6-BB74-D3789295B4FE',
+                    Authorization: process.env.weatherToken,
                     format: 'JSON',
                     locationName: location,
                     elementName: 'Wx,PoP,MinT,MaxT'
