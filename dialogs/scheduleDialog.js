@@ -1,4 +1,4 @@
-const { ComponentDialog, WaterfallDialog, TextPrompt } = require('botbuilder-dialogs');
+const { ComponentDialog, WaterfallDialog, TextPrompt, Dialog } = require('botbuilder-dialogs');
 const { CardFactory } = require('botbuilder');
 const ScheduleFormCard = require('../resource/ScheduleFormCard.json');
 
@@ -10,30 +10,32 @@ class ScheduleDialog extends ComponentDialog{
 
         this.initialDialogId = dialogId;
 
-        this.addDialog(new TextPrompt(PROMPT, this.promptValidator))
         this.addDialog(new WaterfallDialog(dialogId, [
             async function(step) {
+                step.values.scheduleInfo = {};
+
                 await step.context.sendActivity({
                     attachments: [CardFactory.adaptiveCard(ScheduleFormCard)]
                 });
 
-                return await step.prompt(PROMPT, 'waiting for your submit action');
+                return Dialog.EndOfTurn;
             },
 
             async function(step) {
                 await step.context.sendActivity('get response.');
                 const activity = step.context.activity;
 
+                if (activity.channelData.postback) {
+                    step.values.scheduleInfo.name = activity.value.name;
+                } else {
+                    await step.context.sendActivity('我不清楚你的操作');
+                }
+
                 return await step.endDialog();
             }
         ]));
     }
     
-    async promptValidator(promptContext){
-        const activity = promptContext.context.activity;
-
-        return activity.type === 'message' && activity.channelData.postback;
-    }
 }
 
 exports.ScheduleDialog = ScheduleDialog;
